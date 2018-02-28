@@ -10,6 +10,8 @@ namespace Chomenko\Translator;
 use Nette\Localization\ITranslator;
 use Nette\Utils\Html;
 
+//:TODO make caching
+
 class Translator implements ITranslator{
 
     /**
@@ -28,7 +30,9 @@ class Translator implements ITranslator{
     private $locals = array();
 
     /**
+     * Translator constructor.
      * @param Config $config
+     * @param Cache $cache
      */
     public function __construct(Config $config, Cache $cache){
         $this->config = $config;

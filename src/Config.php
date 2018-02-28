@@ -93,6 +93,13 @@ class Config{
     }
 
     /**
+     * @param string $lang
+     */
+    public function setDefaultLang($lang){
+        $this->defaultLang = $lang;
+    }
+
+    /**
      * @return string
      */
     public function getLang(){
