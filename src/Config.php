@@ -57,6 +57,12 @@ class Config{
      */
     protected $translateModal = false;
 
+
+    /**
+     * @var string
+     */
+    protected $prefix;
+
     /**
      * Config constructor.
      * @param bool $values
@@ -133,6 +139,21 @@ class Config{
     public function isAutoSave(){
         return $this->autoSave;
     }
+
+    /**
+     * @param string $prefix
+     */
+    public function setPrefix($prefix){
+        $this->prefix = $prefix;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPrefix(){
+        return $this->prefix;
+    }
+
 
     /**
      * @param bool $enable

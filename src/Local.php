@@ -40,14 +40,14 @@ class Local{
      * Local constructor.
      * @param string $lang
      * @param SplFileObject $file
+     * @param Config $file
      */
-    public function __construct($lang, SplFileObject $file) {
+    public function __construct($lang, SplFileObject $file, Config $config) {
         $this->lang = $lang;
         $this->file = $file;
-
+        $this->config = $config;
         $this->filemtime = $file->getATime();
-
-        $contents = $file->fread($file->getSize());
+        $contents = $file->getSize() > 0 ? $file->fread($file->getSize()): "";
         $this->data = Neon::decode($contents);
     }
 
@@ -108,6 +108,9 @@ class Local{
      * @param array|string $value
      */
     public function saveValue($name, $value){
+
+        $name = $this->setPrefix($name);
+
         if (strpos($name, " ") == false){
             $name = explode('.', $name);
         }
@@ -137,9 +140,7 @@ class Local{
      */
     public function getValue($name, $default = null, $return_array = false){
 
-        if(!array_key_exists(1, func_get_args())){
-            $default = $name;
-        }
+        $name = $this->setPrefix($name);
 
         if (strpos($name, " ") == false){
             $name = explode('.', $name);
@@ -167,6 +168,23 @@ class Local{
             }
         }
         return $default;
+    }
+
+    /**
+     * @param string $name
+     * @return string
+     */
+    private function setPrefix($name){
+        $ignore_prefix = false;
+        if(substr($name, 0, 1) == "."){
+            $name = substr($name, 1, strlen($name));
+            $ignore_prefix = true;
+        }
+
+        if(($prefix = $this->config->getPrefix()) && !$ignore_prefix){
+            $name = $prefix . '.' . $name;
+        };
+        return $name;
     }
 
 

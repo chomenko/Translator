@@ -60,7 +60,7 @@ class Translator implements ITranslator{
             if(!file_exists($file_lang)){
                 touch($file_lang);
             }
-            $this->locals[$lang] = $data = new Local($lang, new \SplFileObject($file_lang));
+            $this->locals[$lang] = $data = new Local($lang, new \SplFileObject($file_lang), $this->config);
             return $data;
         }
         return $this->locals[$lang];
@@ -82,7 +82,20 @@ class Translator implements ITranslator{
         }
 
         $locale = $this->getLocale($this->config->getLang());
-        $return = $locale->getValue($message);
+        $value = $locale->getValue($message, $this);
+        $return = $message;
+
+        if($value instanceof $this){
+            if(is_array($count) && count($count) == 1 && array_key_exists(0, $count)){
+                $return = $count[0];
+                if($this->config->isAutoSave()) {
+                    $locale->saveValue($message, $return);
+                }
+            }
+        }else{
+            $return = $value;
+        }
+
         if($count) {
             preg_match_all('/%+([a-z0-9]+)/u', $return, $match);
             if (isset($match[1]) && $match[1]){
@@ -97,6 +110,7 @@ class Translator implements ITranslator{
                 }
             }
         }
+
         if($this->config->isTranslateModal() && $translate_modal){
             $el = Html::el('span');
             $el->class[] = "translate-item";
