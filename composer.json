@@ -1,0 +1,24 @@
+{
+  "name": "chomenko/translator",
+  "type": "extensions",
+  "description": "Translator for Nette Framework",
+  "keywords": ["Translator"],
+  "homepage": "https://github.com/chomenko/Translator",
+  "license": [],
+  "authors": [
+    {
+      "name": "Mykola Chomenko",
+      "homepage": "http://dipcom.cz",
+      "email": "mykola.chomenko@dipcom.cz"
+    }
+  ],
+  "support": {
+    "email": "mykola.chomenko@dipcom.cz",
+    "issues": "http://git.alistra.cloud/Modules/Paginator"
+  },
+  "autoload": {
+    "psr-4": {
+      "Chomenko\\Translator\\": "src/"
+    }
+  }
+}

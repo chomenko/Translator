@@ -1,0 +1,40 @@
+<style>
+    .translate-item.active{
+        color: red;
+        text-shadow: 1px 1px 0px #0a0a0a;
+    }
+    #translate-modal{
+        z-index: 9999;
+    }
+</style>
+<div data-link="{link GetTranslateData!}" class="modal fade" id="translate-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="z-index: 9999;">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form n:name="translateForm">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel"><i class="fa fa-language" aria-hidden="true"></i> Translate</h4>
+                </div>
+                <div class="modal-body">
+                    <h3 class="name"></h3>
+                    <div class="form-group">
+                        <input n:name="name" style="display: none;">
+                        <blockquote>
+                            <h4><b><i class="fa fa-comment" aria-hidden="true"></i> Default:</b> "<span class="trans-name">customers.name</span>"</h4>
+                        </blockquote>
+                        <textarea n:name="translate" class="form-control" style="min-height: 200px; width: 100%;"/>
+                    </div>
+                </div>
+                <div class="modal-footer text-right">
+                    <button type="button" class="btn btn-default flat" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success flat">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>{$script|noescape}</script>
+
+{*<script>$(document).ready(function(){ $('.lang-modal').translator() });</script>*}
+
