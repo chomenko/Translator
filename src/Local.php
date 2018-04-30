@@ -117,9 +117,7 @@ class Local{
         if(is_array($name)){
             $this->data = $this->setRecursive($this->data,$value, $name);
         }else{
-            if(array_key_exists($name, $this->data)){
-                $this->data[$name] = $value;
-            }
+            $this->data[$name] = $value;
         }
 
         if(!$this->shutdown){
