@@ -28,6 +28,11 @@ class Config{
     protected $selectLang;
 
     /**
+     * @var bool
+     */
+    protected $treeStructure = true;
+
+    /**
      * @var string
      */
     protected $childTempDir= "chomenko.translator";
@@ -138,6 +143,20 @@ class Config{
      */
     public function isAutoSave(){
         return $this->autoSave;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTreeStructure(){
+        return $this->treeStructure;
+    }
+
+    /**
+     * @param bool $bool
+     */
+    public function setTreeStructure($bool = true){
+        $this->treeStructure = $bool;
     }
 
     /**

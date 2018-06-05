@@ -22,6 +22,11 @@ class Local{
     private $file;
 
     /**
+     * @var Config
+     */
+    private $config;
+
+    /**
      * @var string 
      */
     private $lang = null;
@@ -48,7 +53,7 @@ class Local{
         $this->config = $config;
         $this->filemtime = $file->getATime();
         $contents = $file->getSize() > 0 ? $file->fread($file->getSize()): "";
-        $this->data = Neon::decode($contents);
+        $this->data = (array) Neon::decode($contents);
     }
 
 
@@ -60,46 +65,51 @@ class Local{
         return $this->filemtime;
     }
 
+    /**
+     * @param array $jumps
+     * @param mixed $final_value
+     * @param array $level
+     * @return array
+     */
+    private function recursiveSave(array $jumps = array(), $final_value, array $level = array()){
+        if(count($jumps) > 0){
+            $first_key = $jumps[0]; unset($jumps[0]);
 
-    private function setRecursive($data, $value, array $keys, $key_index = 0){
-        $keys = array_values($keys);
-        $key = $keys[$key_index];
-        if($key_index < count($keys)-1) {
+            $next_level = array_key_exists($first_key,  $level) ? $level[$first_key] : array();
 
-            if(is_array($data) && !array_key_exists($key, $data)){
-                $data[$key] = array();
-            }if(is_array($data) && array_key_exists($key, $data)){
-                if(is_string($data[$key]) ){
-                    $data[$key] = array(
-                        '_' => $data[$key]
-                    );
-                }
-            }elseif(is_string($data) ){
-                $data = array(
-                    '_' => $data,
-                    $key => array()
+            if(!is_array($next_level) && count($jumps) > 0){
+                $next_level = array(
+                    '_' => $next_level
                 );
             }
-            $data[$key] = $this->setRecursive($data[$key], $value, $keys, $key_index + 1);
-        }else{
-            if(is_array($data) && !array_key_exists($key, $data)){
-                $data[$key] = $value;
-            }elseif(is_string($data) && is_array($value)){
-                if(!array_key_exists('_', $value)){
-                    $value['_'] = $data;
-                }
-                $data = array($key => $value);
-            }elseif(is_array($data) && array_key_exists($key, $data)){
-                if(is_array($data[$key])){
-                    $data[$key] = array('_' => $value) + $data[$key];
-                }else{
-                    $data[$key] = $value;
-                }
-            }else{
-                $data = $value;
+
+            $level[$first_key] = is_array($next_level) ? $this->recursiveSave(array_values($jumps), $final_value, $next_level) : $final_value;
+            return $level;
+        }
+
+        if(is_array($level) && count($level) > 0){
+            $level['_'] = $final_value;
+            return $level;
+        }
+        return $final_value;
+
+    }
+
+
+    /**
+     * @param string $key
+     * @return bool
+     */
+    private function isValidKey($key){
+        if(strpos($key, " ") !== false){
+            return false;
+        }
+        foreach (explode('.', $key) as $_key){
+            if(empty($_key)){
+                return false;
             }
         }
-        return $data;
+        return true;
     }
 
 
@@ -109,15 +119,16 @@ class Local{
      */
     public function saveValue($name, $value){
 
-        $name = $this->setPrefix($name);
-
-        if (strpos($name, " ") == false){
-            $name = explode('.', $name);
-        }
-        if(is_array($name)){
-            $this->data = $this->setRecursive($this->data,$value, $name);
-        }else{
+        if(!$this->isValidKey($name) || !$this->config->isTreeStructure()){
             $this->data[$name] = $value;
+        }else{
+            $name = $this->setPrefix($name);
+            $jumps = explode('.', $name);
+            $first_key = $jumps[0];
+            unset($jumps[0]);
+
+            $child_data = isset($this->data[$first_key]) ? $this->data[$first_key] : array();
+            $this->data[$first_key] = $this->recursiveSave(array_values($jumps), $value, $child_data);
         }
 
         if(!$this->shutdown){
@@ -129,7 +140,6 @@ class Local{
         }
     }
 
-
     /**
      * @param $name
      * @param null $default
@@ -137,14 +147,13 @@ class Local{
      * @return string|array|null
      */
     public function getValue($name, $default = null, $return_array = false){
-
-        $name = $this->setPrefix($name);
-
-        if (strpos($name, " ") == false){
+        if(!$this->isValidKey($name) || !$this->config->isTreeStructure()){
+            if(array_key_exists($name, $this->data)){
+                return $this->data[$name];
+            }
+        }else{
+            $name = $this->setPrefix($name);
             $name = explode('.', $name);
-        }
-
-        if(is_array($name)){
             $last = $this->data;
             foreach ($name as $n){
                 if(is_array($last) && array_key_exists($n, $last)){
@@ -160,10 +169,6 @@ class Local{
                 return $default;
             }
             return $last;
-        }else{
-            if(array_key_exists($name, $this->data)){
-                return $this->data[$name];
-            }
         }
         return $default;
     }
