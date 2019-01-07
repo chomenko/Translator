@@ -11,7 +11,7 @@ namespace Chomenko\Translator;
 
 class Config{
     
-    
+
     /**
      * @var string
      */
@@ -62,6 +62,10 @@ class Config{
      */
     protected $translateModal = false;
 
+	/**
+	 * @var string
+	 */
+	private $pattern = "~{{\s([a-z0-9]+)\s}}~";
 
     /**
      * @var string
@@ -73,18 +77,19 @@ class Config{
      * @param bool $values
      * @throws \Exception
      */
-    public function __construct($values = false) {
-        if($values){
-            foreach($values as $name => $value){
-                if(property_exists($this, $name)){
+    public function __construct($values = false)
+	{
+        if ($values) {
+            foreach ($values as $name => $value) {
+                if (property_exists($this, $name)) {
                     $this->$name = $value;
                 }
             }
         }
-        if(empty($this->localDir)){
+        if (empty($this->localDir)) {
             throw new \Exception('Default lang directory is not define. Check your configuration file and set local_dir: "lang/dir"');
         }
-        if(empty($this->defaultLang)){
+        if (empty($this->defaultLang)) {
             throw new \Exception('Default lang is not define check your configuration file ad set default_lang: "cs"');
         }
     }
@@ -92,84 +97,96 @@ class Config{
     /**
      * @return string
      */
-    public function getLocalDir(){
+    public function getLocalDir()
+	{
         return $this->localDir;
     }
 
     /**
      * @return string
      */
-    public function getDefaultLang(){
+    public function getDefaultLang()
+	{
         return $this->defaultLang;
     }
 
     /**
      * @param string $lang
      */
-    public function setDefaultLang($lang){
+    public function setDefaultLang($lang)
+	{
         $this->defaultLang = $lang;
     }
 
     /**
      * @return string
      */
-    public function getLang(){
+    public function getLang()
+	{
         return $this->selectLang ? $this->selectLang : $this->defaultLang;
     }
 
     /**
      * @return string
      */
-    public function getTempDir(){
+    public function getTempDir()
+	{
         return $this->tempDir.'/'.$this->childTempDir;
     }
 
     /**
      * @return string
      */
-    public function getCacheName(){
+    public function getCacheName()
+	{
         return $this->cacheName;
     }
 
     /**
      * @return bool
      */
-    public function isDebugMode(){
+    public function isDebugMode()
+	{
         return $this->debugMode;
     }
 
     /**
      * @return bool
      */
-    public function isAutoSave(){
+    public function isAutoSave()
+	{
         return $this->autoSave;
     }
 
     /**
      * @return bool
      */
-    public function isTreeStructure(){
+    public function isTreeStructure()
+	{
         return $this->treeStructure;
     }
 
     /**
      * @param bool $bool
      */
-    public function setTreeStructure($bool = true){
+    public function setTreeStructure($bool = true)
+	{
         $this->treeStructure = $bool;
     }
 
     /**
      * @param string $prefix
      */
-    public function setPrefix($prefix){
+    public function setPrefix($prefix)
+	{
         $this->prefix = $prefix;
     }
 
     /**
      * @return string|null
      */
-    public function getPrefix(){
+    public function getPrefix()
+	{
         return $this->prefix;
     }
 
@@ -177,23 +194,43 @@ class Config{
     /**
      * @param bool $enable
      */
-    public function autoSaveEnable($enable = true){
+    public function autoSaveEnable($enable = true)
+	{
         $this->autoSave = $enable;
     }
 
     /**
      * @return bool
      */
-    public function isTranslateModal(){
+    public function isTranslateModal()
+	{
         return $this->translateModal;
     }
 
     /**
      * @param bool $enable
      */
-    public function translateModalEnable($enable = true){
+    public function translateModalEnable($enable = true)
+	{
         $this->translateModal = $enable;
     }
-    
-    
+
+	/**
+	 * @return string
+	 */
+	public function getPattern()
+	{
+		return $this->pattern;
+	}
+
+	/**
+	 * @param string $pattern
+	 * @return $this
+	 */
+	public function setPattern($pattern)
+	{
+		$this->pattern = $pattern;
+		return $this;
+	}
+
 }

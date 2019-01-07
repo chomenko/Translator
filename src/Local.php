@@ -53,6 +53,12 @@ class Local{
         $this->config = $config;
         $this->filemtime = $file->getATime();
         $contents = $file->getSize() > 0 ? $file->fread($file->getSize()): "";
+
+        if (empty($contents)){
+			$this->data = [];
+			return;
+		}
+
         $this->data = (array) Neon::decode($contents);
     }
 

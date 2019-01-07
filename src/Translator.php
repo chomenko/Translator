@@ -97,7 +97,7 @@ class Translator implements ITranslator{
         }
 
         if($count) {
-            preg_match_all('/%+([a-z0-9]+)/u', $return, $match);
+            preg_match_all($this->config->getPattern(), $return, $match);
             if (isset($match[1]) && $match[1]){
                 if (is_array($count)) {
                     foreach ($match[1] as $i => $name) {
