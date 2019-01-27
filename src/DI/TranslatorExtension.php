@@ -1,47 +1,59 @@
 <?php
-
 /**
- * @author Mykola Chomenko <mykola.chomenko@dipcom.cz>
+ * Author: Mykola Chomenko
+ * Email: mykola.chomenko@dipcom.cz
  */
 
 namespace Chomenko\Translator\DI;
 
+use Chomenko\Translator\Events;
 use Chomenko\Translator\Cache;
 use Chomenko\Translator\Config;
 use Chomenko\Translator\Control\ITranslateModal;
+use Chomenko\Translator\Tracy\Panel;
 use Chomenko\Translator\Translator;
 use Nette\Configurator;
 use Nette\DI\CompilerExtension;
 use Nette\DI\Compiler;
 
-class TranslatorExtension extends CompilerExtension{
+class TranslatorExtension extends CompilerExtension
+{
 
-    public function loadConfiguration() {
-        
-        $builder = $this->getContainerBuilder();
-        $config = $this->getConfig($builder->parameters);
+	public function loadConfiguration()
+	{
+		$builder = $this->getContainerBuilder();
+		$config = $this->getConfig($builder->parameters);
 
-        $configuration = $builder->addDefinition($this->prefix('config'))
-		->setClass(Config::class, array($config))
-                ->setInject(false);
-        
-        $builder->addDefinition($this->prefix('cache'))
-		->setClass(Cache::class, array($configuration))
-                 ->setInject(false);
+		$configuration = $builder->addDefinition($this->prefix('config'))
+			->setFactory(Config::class, [$config]);
 
-        $builder->addDefinition($this->prefix('translator'))
-		    ->setClass(Translator::class);
+		$builder->addDefinition($this->prefix('listener'))
+			->setFactory(Events\Listener::class);
 
-        $builder->addDefinition($this->prefix('modal'))
-            ->setImplement(ITranslateModal::class);
-    }
+		$builder->addDefinition($this->prefix('cache'))
+			->setFactory(Cache::class, [$configuration]);
 
-     /**
-     * @param Configurator $configurator
-     */
-    public static function register(Configurator $configurator){
-        $configurator->onCompile[] = function ($config, Compiler $compiler){
-            $compiler->addExtension('translator', new TranslatorExtension());
-        };
-    }
+		$builder->addDefinition($this->prefix('translator'))
+			->setFactory(Translator::class);
+
+		$builder->addDefinition($this->prefix('modal'))
+			->setImplement(ITranslateModal::class);
+
+		$builder->addDefinition($this->prefix('panel'))
+			->setFactory(Panel::class);
+
+		$builder->getDefinition('tracy.bar')
+			->addSetup('$service->addPanel($this->getService(?));', [$this->prefix('panel')]);
+	}
+
+	/**
+	 * @param Configurator $configurator
+	 */
+	public static function register(Configurator $configurator)
+	{
+		$configurator->onCompile[] = function ($config, Compiler $compiler) {
+			$compiler->addExtension('translator', new TranslatorExtension());
+		};
+	}
+
 }

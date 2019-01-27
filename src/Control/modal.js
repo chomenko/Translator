@@ -20,14 +20,16 @@
         event.preventDefault();
         event.stopPropagation();
         var name = $(this).attr('data-trans-name');
+		var file = $(this).attr('data-trans-file');
         var url = modal.attr('data-link');
         $.ajax({
             url: url,
-            data: {name: name},
+            data: {name: name, file: file},
             success: function(data){
                 var form = modal.find("form");
                 form.find('.trans-name').text(name);
                 form.find('input[name="name"]').val(name);
+				form.find('input[name="file"]').val(file);
                 form.find('textarea[name="translate"]').val(data.translate);
                 modal.modal("show")
             }

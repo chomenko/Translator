@@ -61,7 +61,7 @@ In latte:
 
 ## Translate Modal
 
-![Translate Modal](src/Doc/modal.PNG?raw=true)
+![Translate Modal](.docs/modal.PNG?raw=true)
 
 **Use only in the developer mode. Do not use for production!!**
 

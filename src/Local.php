@@ -1,211 +1,146 @@
 <?php
-
 /**
- * @author Mykola Chomenko <mykola.chomenko@dipcom.cz>
+ * Author: Mykola Chomenko
+ * Email: mykola.chomenko@dipcom.cz
  */
+
 namespace Chomenko\Translator;
 
-use Nette\Neon\Encoder;
-use Nette\Neon\Neon;
-use SplFileObject;
+use Chomenko\Translator\Events\Listener;
+use Nette\Utils\Finder;
 
-class Local{
+class Local
+{
 
-    /**
-     * @var integer 
-     */
-    private $filemtime = null;
+	/**
+	 * @var string
+	 */
+	private $lang = NULL;
 
-    /**
-     * @var SplFileObject
-     */
-    private $file;
+	/**
+	 * @var Translator
+	 */
+	private $translator;
 
-    /**
-     * @var Config
-     */
-    private $config;
+	/**
+	 * @var LangFile[]
+	 */
+	private $files = [];
 
-    /**
-     * @var string 
-     */
-    private $lang = null;
+	/**
+	 * @param string $lang
+	 * @param Translator $translator
+	 */
+	public function __construct(string $lang, Translator $translator)
+	{
+		$this->translator = $translator;
+		$config = $translator->getConfig();
+		$this->lang = $lang;
+		/** @var \SplFileInfo $file */
+		foreach (Finder::find([$lang . "_*.neon", $lang . ".neon"])->in($config->getLocalDir()) as $file) {
+			$name = $file->getBasename('.' . $file->getExtension());
+			$prefix = $lang . "_";
+			if (substr($name, 0, strlen($prefix)) === $prefix) {
+				$name = substr($name, strlen($prefix), strlen($name));
+			}
+			$langFile = new LangFile($file);
+			$this->addFile($name, $langFile);
+		}
+	}
 
-    /**
-     * @var array
-     */
-    private $data = array();
+	/**
+	 * @return ILangFile
+	 * @throws TranslateException
+	 */
+	public function getMasterFile(): ILangFile
+	{
+		if (!array_key_exists($this->getLang(), $this->files)) {
+			throw TranslateException::fileNotFound($this->getLang() . ".neon");
+		}
+		return $this->files[$this->getLang()];
+	}
 
-    /**
-     * @var bool
-     */
-    private $shutdown = false;
+	/**
+	 * @param string $aliasFileName
+	 * @param ILangFile $file
+	 */
+	public function addFile(string $aliasFileName, ILangFile $file)
+	{
+		$this->files[$aliasFileName] = $file;
+		$file->attached($aliasFileName, $this->getTranslator());
+		$this->translator->getListener()->emit(Listener::ON_ADD_FILE, $file, $aliasFileName);
+	}
 
-    /**
-     * Local constructor.
-     * @param string $lang
-     * @param SplFileObject $file
-     * @param Config $file
-     */
-    public function __construct($lang, SplFileObject $file, Config $config) {
-        $this->lang = $lang;
-        $this->file = $file;
-        $this->config = $config;
-        $this->filemtime = $file->getATime();
-        $contents = $file->getSize() > 0 ? $file->fread($file->getSize()): "";
+	/**
+	 * @param string $name
+	 * @param mixed $value
+	 * @param string|NULL $aliasFileName
+	 * @throws TranslateException
+	 */
+	public function saveValue(string $name, $value, string $aliasFileName = NULL): void
+	{
+		$file = $this->getMasterFile();
 
-        if (empty($contents)){
-			$this->data = [];
-			return;
+		if ($aliasFileName !== NULL) {
+			if (!array_key_exists($aliasFileName, $this->files)) {
+				barDump($aliasFileName);
+				throw TranslateException::fileAliasDoesNotExist($aliasFileName);
+			}
+			$file = $this->files[$aliasFileName];
+		}
+		$this->translator->getListener()->emit(Listener::ON_SAVE_VALUE, $file, $name, $value, $aliasFileName);
+		$file->saveValue($name, $value);
+	}
+
+	/**
+	 * @param string $name
+	 * @param null $default
+	 * @param null|string $aliasFileName
+	 * @return string|array|null
+	 */
+	public function getValue($name, $default = NULL, string $aliasFileName = NULL)
+	{
+		$value = new \stdClass();
+
+		if ($aliasFileName && array_key_exists($aliasFileName, $this->files)) {
+			$file = $this->files[$aliasFileName];
+			$value = $file->getValue($name, new \stdClass());
 		}
 
-        $this->data = (array) Neon::decode($contents);
-    }
+		if ($value instanceof \stdClass && array_key_exists($this->lang, $this->files)) {
+			$file = $this->files[$this->lang];
+			$value = $file->getValue($name, new \stdClass());
+		}
 
+		if (!$value instanceof \stdClass) {
+			return $value;
+		}
 
+		return $default;
+	}
 
-    /**
-     * @return int
-     */
-    public function getFileMTime(){
-        return $this->filemtime;
-    }
+	/**
+	 * @return string
+	 */
+	public function getLang(): string
+	{
+		return $this->lang;
+	}
 
-    /**
-     * @param array $jumps
-     * @param mixed $final_value
-     * @param array $level
-     * @return array
-     */
-    private function recursiveSave(array $jumps = array(), $final_value, array $level = array()){
-        if(count($jumps) > 0){
-            $first_key = $jumps[0]; unset($jumps[0]);
+	/**
+	 * @return Translator
+	 */
+	public function getTranslator(): Translator
+	{
+		return $this->translator;
+	}
 
-            $next_level = array_key_exists($first_key,  $level) ? $level[$first_key] : array();
-
-            if(!is_array($next_level) && count($jumps) > 0){
-                $next_level = array(
-                    '_' => $next_level
-                );
-            }
-
-            $level[$first_key] = is_array($next_level) ? $this->recursiveSave(array_values($jumps), $final_value, $next_level) : $final_value;
-            return $level;
-        }
-
-        if(is_array($level) && count($level) > 0){
-            $level['_'] = $final_value;
-            return $level;
-        }
-        return $final_value;
-
-    }
-
-
-    /**
-     * @param string $key
-     * @return bool
-     */
-    private function isValidKey($key){
-        if(strpos($key, " ") !== false){
-            return false;
-        }
-        foreach (explode('.', $key) as $_key){
-            if(empty($_key)){
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    /**
-     * @param string $name
-     * @param array|string $value
-     */
-    public function saveValue($name, $value){
-
-        if(!$this->isValidKey($name) || !$this->config->isTreeStructure()){
-            $this->data[$name] = $value;
-        }else{
-            $name = $this->setPrefix($name);
-            $jumps = explode('.', $name);
-            $first_key = $jumps[0];
-            unset($jumps[0]);
-
-            $child_data = isset($this->data[$first_key]) ? $this->data[$first_key] : array();
-            $this->data[$first_key] = $this->recursiveSave(array_values($jumps), $value, $child_data);
-        }
-
-        if(!$this->shutdown){
-            if(!is_writable($this->file->getRealPath())){
-                throw new \Exception("File {$this->file->getRealPath()} is not writable. Check Permission.");
-            }
-            $this->shutdown = true;
-            register_shutdown_function(array($this, 'save'));
-        }
-    }
-
-    /**
-     * @param $name
-     * @param null $default
-     * @param bool $return_array
-     * @return string|array|null
-     */
-    public function getValue($name, $default = null, $return_array = false){
-        if(!$this->isValidKey($name) || !$this->config->isTreeStructure()){
-            if(array_key_exists($name, $this->data)){
-                return $this->data[$name];
-            }
-        }else{
-            $name = $this->setPrefix($name);
-            $name = explode('.', $name);
-            $last = $this->data;
-            foreach ($name as $n){
-                if(is_array($last) && array_key_exists($n, $last)){
-                    $last = $last[$n];
-                }else{
-                    return $default;
-                }
-            }
-            if(is_array($last) && $return_array === false){
-                if(array_key_exists('_', $last)){
-                    return $last['_'];
-                }
-                return $default;
-            }
-            return $last;
-        }
-        return $default;
-    }
-
-    /**
-     * @param string $name
-     * @return string
-     */
-    private function setPrefix($name){
-        $ignore_prefix = false;
-        if(substr($name, 0, 1) == "."){
-            $name = substr($name, 1, strlen($name));
-            $ignore_prefix = true;
-        }
-
-        if(($prefix = $this->config->getPrefix()) && !$ignore_prefix){
-            $name = $prefix . '.' . $name;
-        };
-        return $name;
-    }
-
-
-    public function save(){
-        $content = Neon::encode($this->data, Encoder::BLOCK);
-        file_put_contents($this->file->getRealPath(), $content);
-    }
-
-
-    public function __sleep(){
-        $this->shutdown = false;
-    }
-
+	/**
+	 * @return LangFile[]
+	 */
+	public function getFiles(): array
+	{
+		return $this->files;
+	}
 
 }

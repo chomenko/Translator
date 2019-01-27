@@ -1,0 +1,21 @@
+<h1>Translate</h1>
+<div class="tracy-inner">
+	<div style="max-height: 400px; overflow: hidden; overflow-y: auto;">
+		<table style="min-width: 400px; margin-bottom: 10px;">
+			<thead>
+			<tr>
+				<th>Alias</th>
+				<th>Language</th>
+				<th>File</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr n:foreach="$files as $file">
+				<td><b>{$file['name']}</b></td>
+				<td>{$file['lang']}</td>
+				<td>{$file['file']}</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
