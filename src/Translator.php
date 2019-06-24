@@ -6,10 +6,10 @@
 
 namespace Chomenko\Translator;
 
-use Nette\Localization\ITranslator;
+use Nette\Localization\ITranslator as IBaseTranslator;
 use Nette\Utils\Html;
 
-class Translator implements ITranslator
+class Translator implements IBaseTranslator, ITranslator
 {
 
 	/**
@@ -33,9 +33,15 @@ class Translator implements ITranslator
 	private $locals = [];
 
 	/**
+	 * @var TranslatorFromFile[]
+	 */
+	private $translators = [];
+
+	/**
 	 * Translator constructor.
 	 * @param Config $config
 	 * @param Cache $cache
+	 * @param Events\Listener $listener
 	 */
 	public function __construct(Config $config, Cache $cache, Events\Listener $listener)
 	{
@@ -158,6 +164,18 @@ class Translator implements ITranslator
 
 		$this->listener->emit(Events\Listener::ON_AFTER_TRANSLATE, $this, $return);
 		return $return;
+	}
+
+	/**
+	 * @param string $fileName
+	 * @return TranslatorFromFile
+	 */
+	public function translatorFromFile(string $fileName): ITranslator
+	{
+		if (!array_key_exists($fileName, $this->translators)) {
+			$this->translators[$fileName] = new TranslatorFromFile($fileName, $this);
+		}
+		return $this->translators[$fileName];
 	}
 
 }
