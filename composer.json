@@ -13,14 +13,13 @@
     }
   ],
   "support": {
-    "email": "mykola.chomenko@dipcom.cz",
-    "issues": "http://git.alistra.cloud/Modules/Paginator"
+    "email": "mykola.chomenko@dipcom.cz"
   },
   "require": {
     "php": "^5.6 || ^7.0",
     "nette/di": "^2.4",
     "nette/caching": "^2.5",
-    "nette/neon": "^2.4",
+    "nette/neon": "^3.0",
     "nette/utils": "^2.4"
   },
   "autoload": {
