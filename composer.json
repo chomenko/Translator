@@ -21,7 +21,7 @@
     "nette/caching": "^2.5",
     "nette/neon": "^3.0",
     "nette/utils": "^2.4",
-    "@nettpack/staging": "^1.0"
+    "@nettpack/stage": "^1.0"
   },
   "autoload": {
     "psr-4": {
