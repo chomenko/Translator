@@ -29,7 +29,6 @@ class TranslateModal extends Control
 	public function render(): void
 	{
 		$template = $this->template;
-		$template->script = file_get_contents(__DIR__ . '/modal.js');
 		$template->setFile(__DIR__ . '/modal.latte');
 		$template->render();
 	}

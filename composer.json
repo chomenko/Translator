@@ -20,11 +20,19 @@
     "nette/di": "^2.4",
     "nette/caching": "^2.5",
     "nette/neon": "^3.0",
-    "nette/utils": "^2.4"
+    "nette/utils": "^2.4",
+    "@nettpack/staging": "^1.0"
   },
   "autoload": {
     "psr-4": {
       "Chomenko\\Translator\\": "src/"
+    }
+  },
+  "extra": {
+    "nettpack": {
+      "resolve": {
+        "Translator": "./src/Assets/main.js"
+      }
     }
   }
 }

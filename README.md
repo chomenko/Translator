@@ -7,6 +7,7 @@ Required:
 - [nette/caching](https://github.com/nette/caching)
 - [nette/neon](https://github.com/nette/neon)
 - [nette/utils](https://github.com/nette/utils)
+- [nettpack/stage](https://github.com/nettpack/stage)
 
 ## Install
 
