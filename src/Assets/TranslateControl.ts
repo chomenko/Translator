@@ -2,17 +2,17 @@ if (module.hot) {
 	module.hot.accept();
 }
 
-import {App, BaseComponent, SAGA_REDRAW_SNIPPET} from "Stage"
+import {App, BaseComponent, SAGA_REDRAW_SNIPPET, Saga} from "Stage"
 
 class TranslateControl extends BaseComponent {
 
 	initial() {
 		super.initial();
 		this.installPlugins();
-		this.createSaga(SAGA_REDRAW_SNIPPET, this.installPlugins);
 	}
 
-	installPlugins(action){
+	@Saga(SAGA_REDRAW_SNIPPET)
+	public installPlugins(action = null){
 		let target = document;
 		if (action) {
 			const {content} = action.payload;

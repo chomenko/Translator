@@ -1,1 +1,1 @@
-export * from './TranslateControl';
+export * from './TranslateControl.ts';
