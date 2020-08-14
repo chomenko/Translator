@@ -15,27 +15,27 @@ class Translator implements IBaseTranslator, ITranslator
 	/**
 	 * @var Config
 	 */
-	private $config;
+    private Config $config;
 
 	/**
 	 * @var Cache
 	 */
-	private $cache;
+    private Cache $cache;
 
 	/**
 	 * @var Events\Listener
 	 */
-	private $listener;
+    private Events\Listener $listener;
 
 	/**
 	 * @var Local[]
 	 */
-	private $locals = [];
+    private array $locals = [];
 
 	/**
 	 * @var TranslatorFromFile[]
 	 */
-	private $translators = [];
+    private array $translators = [];
 
 	/**
 	 * Translator constructor.
@@ -113,8 +113,13 @@ class Translator implements IBaseTranslator, ITranslator
 	 * @return mixed|Html|static
 	 * @throws \Exception
 	 */
-	public function translate($message, $parameters = NULL, string $fileName = NULL, $translateModal = TRUE)
+	public function translate($message, ...$parameters): string
 	{
+
+        $parameters = isset($parameters[0]) ? $parameters[0] : NULL;
+        $fileName = isset($parameters[1]) ? $parameters[1] : NULL;
+        $translateModal = isset($parameters[2]) ? $parameters[2] : true;
+
 		$this->listener->emit(Events\Listener::ON_BEFORE_TRANSLATE, $this, ...func_get_args());
 
 		if ($message instanceof Html) {

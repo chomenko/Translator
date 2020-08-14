@@ -22,7 +22,8 @@ class TranslatorExtension extends CompilerExtension
 	public function loadConfiguration()
 	{
 		$builder = $this->getContainerBuilder();
-		$config = $this->getConfig($builder->parameters);
+		$userConfig = $this->getConfig();
+		$config = $builder->parameters + $userConfig;
 
 		$configuration = $builder->addDefinition($this->prefix('config'))
 			->setFactory(Config::class, [$config]);
@@ -36,8 +37,8 @@ class TranslatorExtension extends CompilerExtension
 		$builder->addDefinition($this->prefix('translator'))
 			->setFactory(Translator::class);
 
-		$builder->addDefinition($this->prefix('modal'))
-			->setImplement(ITranslateModal::class);
+		$builder->addFactoryDefinition($this->prefix('modal'))
+            ->setImplement(ITranslateModal::class);
 
 		$builder->addDefinition($this->prefix('panel'))
 			->setFactory(Panel::class);
